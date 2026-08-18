@@ -376,7 +376,6 @@
       } else {
         animFrameId = null;
         ctx.clearRect(0, 0, fireworkCanvas.width, fireworkCanvas.height);
-        // Automatically relight the candle as soon as all particles disappear!
         relightCandle();
       }
     }
@@ -397,7 +396,7 @@
       }
     }
 
-    const localAudio = new Audio('happy-birthday.mp3');
+    const localAudio = new Audio('./happy-birthday.mp3');
     localAudio.loop = true;
     let isLocalAudioPlaying = false;
 
@@ -479,11 +478,20 @@
 
     function startMusic() {
       initAudioContext();
-      localAudio.play().then(() => {
-        isLocalAudioPlaying = true;
-      }).catch(() => {
-        startSynthMelody();
-      });
+      
+      localAudio.currentTime = 0;
+      const playPromise = localAudio.play();
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            isLocalAudioPlaying = true;
+          })
+          .catch((error) => {
+            console.warn('Local MP3 play blocked or failed, falling back to synth melody:', error);
+            startSynthMelody();
+          });
+      }
     }
 
     function stopMusic() {
@@ -535,7 +543,6 @@
       candleIsLit = false;
       candleFlame.style.display = 'none';
 
-      // Launch Canvas Fireworks on Left & Right Sides simultaneously
       triggerDualSideFireworks();
       triggerTopConfettiDrop();
     }
